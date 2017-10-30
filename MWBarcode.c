@@ -55,7 +55,7 @@ void MWBarcodeRawcode2Code(uint8_t code[CODE_LENGTH], uint64_t rawcode) {
 	uint64_t remainder = rawcode;
 	uint64_t divisor = 1e13;
 
-	for (unt8_t i = 1; i <= CODE_LENGTH; ++i) {
+	for (uint8_t i = 1; i <= CODE_LENGTH; ++i) {
 		quotient = remainder / divisor;
 		remainder = rawcode % divisor;
 		code[CODE_LENGTH-i] = quotient;
@@ -69,7 +69,7 @@ void MWBarcodeRawcode2String(char str_code[CODE_LENGTH], uint64_t rawcode) {
 	uint64_t remainder = rawcode;
 	uint64_t divisor = 1e13;
 
-	for (unt8_t i = 1; i <= CODE_LENGTH; ++i) {
+	for (uint8_t i = 1; i <= CODE_LENGTH; ++i) {
 		quotient = remainder / divisor;
 		remainder = rawcode % divisor;
 		str_code[CODE_LENGTH-i] = quotient + '0';
@@ -80,7 +80,7 @@ void MWBarcodeRawcode2String(char str_code[CODE_LENGTH], uint64_t rawcode) {
 
 //private functions
 void MWBarcodeDrawBar(uint16_t *x, uint16_t y, uint8_t color) {
-	for (uint8_t i = 0; i < BARCODE_WIDTH; ++i) {
+	for (uint8_t i = 0; i < BAR_WIDTH; ++i) {
 		for (uint8_t j = 0; j < BAR_HEIGHT; ++j) {
 			__setPixelFunction((*x)+i, y+j, color);
 		}
