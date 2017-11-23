@@ -32,10 +32,10 @@
 
 static MWBarcodeSetPixel __setPixelFunction;
 //1 = L | 0 = G
-static const uint8_t __firstGroup[10] = {0b111111, 0b110100, 0b110010, 0b110001, 0b101100,
-										 0b100110, 0b100011, 0b101010, 0b101001, 0b100101};
-static const uint8_t __lCode[10] = {0b0001101, 0b0011001, 0b0010011, 0b0111101, 0b0100011,
-									0b0110001, 0b0101111, 0b0111011, 0b0110111, 0b0001011};
+static const uint8_t __firstGroup[10] = {0x3F, 0x34, 0x32, 0x31, 0x2C,
+																				 0x26, 0x23, 0x2A, 0x29, 0x25};
+static const uint8_t __lCode[10] = {0x0D, 0x19, 0x13, 0x3D, 0x23,
+																		0x31, 0x2F, 0x3B, 0x37, 0x0B};
 
 //utils functions
 void MWBarcodeString2Code(uint8_t code[CODE_LENGTH], const char str_code[CODE_LENGTH]) {
@@ -94,7 +94,7 @@ uint8_t MWBarcodeGetGCode(uint8_t lCode) {
 	lCode = (lCode & 0xAA) >> 1 | (lCode & 0x55) << 1;
 	lCode = lCode >> 1;
 	lCode = ~lCode;
-
+	
 	return lCode;
 }
 
@@ -104,7 +104,7 @@ void MWBarcodeInit(MWBarcodeSetPixel setPixelFunction) {
 }
 
 void MWBarcodeDraw(uint16_t x, uint16_t y, uint8_t code[CODE_LENGTH]) {
-	uint8_t firstDigit = code[CODE_LENGTH];
+	uint8_t firstDigit = code[CODE_LENGTH-1];
 	uint8_t mask;
 	uint8_t mask2;
 	uint8_t digit;
@@ -120,20 +120,26 @@ void MWBarcodeDraw(uint16_t x, uint16_t y, uint8_t code[CODE_LENGTH]) {
 	MWBarcodeDrawBar(&x, y, BLACK);
 
 	//write first group
-	mask2 = 0b00100000;
-	for (int8_t i = 11; i >= 6; --i, mask2 >>= 1) {
+	mask2 = 0x20;
+	for (int8_t i = 11; i >= 6; --i) {
 		digit = code[i];
-		mask = 0b01000000;
-		for (uint8_t j = 0; j < 7; ++j, mask >>= 1) {
-			if ((__firstGroup[firstDigit] & mask2) != 0) {
+		mask = 0x40;
+		
+		if ((__firstGroup[firstDigit] & mask2) != 0) {
+			for (uint8_t j = 0; j < 7; ++j) {
 				//L
 				MWBarcodeDrawBar(&x, y, (mask & __lCode[digit]) == 0 ? WHITE : BLACK);
-			}
-			else {
-				//G
-				MWBarcodeDrawBar(&x, y, (mask & MWBarcodeGetGCode(__lCode[digit])) == 0 ? WHITE : BLACK);
+				mask = mask >> 1;
 			}
 		}
+		else {
+			for (uint8_t j = 0; j < 7; ++j) {
+				//G
+				MWBarcodeDrawBar(&x, y, (mask & MWBarcodeGetGCode(__lCode[digit])) == 0 ? WHITE : BLACK);
+				mask = mask >> 1;
+			}
+		}	
+		mask2 = mask2 >> 1;
 	}
 
 	//write center mark
@@ -146,9 +152,11 @@ void MWBarcodeDraw(uint16_t x, uint16_t y, uint8_t code[CODE_LENGTH]) {
 	//write second group
 	for (int8_t i = 5; i >= 0; --i) {
 		digit = code[i];
-		mask = 0b01000000;
-		for (uint8_t j = 0; j < 7; ++j, mask >>= 1) {
+		mask = 0x40;
+		for (uint8_t j = 0; j < 7; ++j) {
 			MWBarcodeDrawBar(&x, y, (mask & ~__lCode[digit]) == 0 ? WHITE : BLACK);
+			
+			mask = mask >> 1;
 		}
 	}
 
